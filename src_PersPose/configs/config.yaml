@@ -1,0 +1,74 @@
+prj_name: 'PersPose'
+reproducible: False # amp cudnn.benchmark  # Set to False can save half of the time
+validate: True # whether to evaluate during training
+lr_coefficient: {} # { 'hrnet': 0.3,'hm_layer': 0.5 } # No need to specify the coefficient for all layers
+scheduler_period: 3  # lr_scheduler.StepLR.step_size
+scheduler_gamma: 0.75 # lr_scheduler.StepLR.gamma   0.75^8=0.1
+warmup: 1 #epochs
+weight_decay: 0.0005
+grad_clip_ts: 100.0
+ckpt_his_num: 1000 #the number of latest ckpt files to save during training
+lr: 0.0003
+epochs: 100
+batch_size: 16
+batch_size_eval: 16
+num_workers: 0
+
+# h36m_train, coco, hp3d, pw3d_train, bedlam_train, bedlam_val
+mix_ratio: [0.3, 0.4, 0.2, 0.2, 0.15, 0.05]
+
+loss_weight: [1.0, 1.0, 1.0,
+              1.0, 1.0,
+              1.0, 1.0,
+              0.0,
+              0.0,
+              0.1, 0.01, 0.01,
+]
+metric_label: [ '0l/0uv', '0l/0uv_coco', '0l/0uv_hp3d',
+                '0l/1d','0l/1d_hp3d',
+                '0l/2rho0','0l/2rho0_hp3d',
+                '0l/3xyz',
+                '0l/4h',
+                '0l/5twist','0l/5beta','0l/5leaf',
+
+                '1err/0uv', '1err/0uv_coco', '1err/0uv_hp3d',
+                '1err/1d', '1err/1d_aligned', '1err/1d_hp3d', '1err/1d_aligned_hp3d',
+                '1err/2rho0', '1err/2rho0_hp3d',
+                '1err/3xyz', '1err/x', '1err/y', '1err/z', '1err/xyz_aligned',
+                '1err/h',
+                '1err/twist',
+                '2metric/MPJPE','2metric/PA_MPJPE','2metric/MPVPE','2metric/MPJPE_hp3d','2metric/PA_MPJPE_hp3d',
+]
+metric4eval: [ '2metric/MPJPE', '2metric/MPJPE', '2metric/MPJPE_hp3d'] # used for evaluate to save ckpt
+test_sets_name: [ 'h36m', '3dpw', '3dhp']
+
+
+TRANSFORM:
+  IMAGE_SIZE:
+    - 256 #w
+    - 256 #h
+  DP_MARGIN: 1 # np.floor(crop_h / grid_h / 2)
+  PERSPECTIVE_CENTER: True
+  PERSPECTIVE_CENTER_AUG: True
+  PROB:
+    'no_augmentation': 0.2
+
+    'cutout': 0.4
+    'perspective': 0.0
+    'rot': 0.5
+    'shift': 0.0
+    'scale': 0.2
+    'stretch': 0.0
+
+    'gaussian_noise': 0.3
+    'blur_sharp': 0.1
+    'contrast_brightness': 0.5
+    'saturation_hue': 0.5
+    'channel': 0.1
+  FACTOR:
+    'cutout': 0.4  # max(cutout area)==cutout_factor*bbox_area
+    'perspective_field': 15
+    'rot': 30  # degree
+    'shift': 0.1  # 020%*bbox_wh
+    'scale': 0.2  # 20%
+    'stretch': 0.2  # 20%
